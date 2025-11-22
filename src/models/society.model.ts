@@ -1,15 +1,7 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { SocietySchemaName, UserSchemaName } from "./modelNames";
+import mongoose, { Schema } from "mongoose";
 
-interface ISociety extends Document {
-    name: string;
-    registrationNumber: string;
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    admin: Schema.Types.ObjectId;
-}
+import { ISociety } from "../types/society";
+import { SocietySchemaName, UserSchemaName } from "./modelNames";
 
 const societySchema = new Schema<ISociety>({
     name: {
@@ -43,5 +35,5 @@ const societySchema = new Schema<ISociety>({
     },
 });
 
-const Society = mongoose.models[SocietySchemaName] || mongoose.model(SocietySchemaName, societySchema);
+const Society = mongoose.model(SocietySchemaName, societySchema);
 export default Society;

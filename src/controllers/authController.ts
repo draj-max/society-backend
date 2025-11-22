@@ -7,10 +7,13 @@ import User from "../models/user.model";
 import sendResponse from "../utils/sendResponse";
 import {
     JWT_SECRET,
+    JWT_REFRESH_SECRET,
     accessTokenExp,
     bcryptSaltRounds,
     refreshTokenExp,
 } from "../config";
+
+// ===================== unauthenticated / public routes =========================
 
 // register controller
 export const register = async (req: Request, res: Response) => {
@@ -28,10 +31,11 @@ export const register = async (req: Request, res: Response) => {
             User.findOne({ email }),
             User.findOne({ username }),
         ]);
-        if (existEmail || existUsername) {
+
+        const user = existEmail || existUsername;
+        if (user) {
             return sendResponse(res, 400, "User already exists with the given email or username.");
         }
-
         const hashPassword = await bcrypt.hash(password, bcryptSaltRounds);
 
         const newUser = new User({
@@ -50,16 +54,23 @@ export const register = async (req: Request, res: Response) => {
 // login controller 
 export const login = async (req: Request, res: Response) => {
     try {
-        let { email, password } = req.body;
-        if (!email || !password) {
-            return sendResponse(res, 400, "Both email and password are required.");
+        let { username, email, password } = req.body;
+        if (!username && !email || !password) {
+            return sendResponse(res, 400, "email or username and password are required.");
         }
 
         email = email?.trim()?.toLowerCase();
         password = password?.trim();
 
-        const user = await User.findOne({ email }).select("+password");
-        if (!user) return sendResponse(res, 404, "User not found with the givem email.");
+        const [userByEmail, userByUsername] = await Promise.all([
+            User.findOne({ email }).select("+password"),
+            User.findOne({ username }).select("+password"),
+        ]);
+
+        const user = userByEmail || userByUsername;
+        if (!user) {
+            return sendResponse(res, 404, "User not found with the givem email or username.");
+        }
 
         const isPasswordMatched = await bcrypt.compare(password, user.password);
         if (!isPasswordMatched) return sendResponse(res, 400, "Incorrect password.");
@@ -68,7 +79,7 @@ export const login = async (req: Request, res: Response) => {
         const tokenPayload = { userId: user._id };
 
         const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: accessTokenExp });
-        const refreshToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: refreshTokenExp });
+        const refreshToken = jwt.sign(tokenPayload, JWT_REFRESH_SECRET, { expiresIn: refreshTokenExp });
 
         return sendResponse(res, 200, "You are loggedin successfully.", {
             user: {
@@ -86,11 +97,46 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
+// refresh token
+export const refreshToken = async (req: Request, res: Response) => {
+    try {
+        const refreshToken = req.body.refreshToken;
+        if (!refreshToken) return sendResponse(res, 400, "Refresh token is required.");
+
+        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
+        if (!decoded) return sendResponse(res, 401, "Invalid refresh token.");
+
+        const exitstUser = await User.findById(decoded.userId);
+        if (!exitstUser) return sendResponse(res, 404, "User not found.");
+
+        const accessToken = jwt.sign({ userId: exitstUser._id }, JWT_SECRET, { expiresIn: accessTokenExp });
+        const newRefreshToken = jwt.sign({ userId: exitstUser._id }, JWT_REFRESH_SECRET, { expiresIn: refreshTokenExp });
+
+        return sendResponse(res, 200, "Your token is refreshed successfully.", {
+            user: {
+                _id: String(exitstUser._id),
+                username: exitstUser.username,
+                email: exitstUser.email,
+            },
+            accessToken,
+            newRefreshToken,
+        });
+    } catch (error: any) {
+        if (error.name === "TokenExpiredError") return sendResponse(res, 401, "Refresh token expired.");
+        if (error.name === "JsonWebTokenError") return sendResponse(res, 401, "Invalid refresh token.");
+
+        console.error("Refresh Token Error:", error);
+        return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
+    }
+};
+
+// ===================== authenticated / private routes =========================
+
 // my profile
 export const myProfile = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        return sendResponse(res, 200, "User found.", user);
+        return sendResponse(res, 200, "Your profile details.", user);
     } catch (error: any) {
         console.error("Me Error:", error);
         return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
@@ -98,13 +144,15 @@ export const myProfile = async (req: Request, res: Response) => {
 };
 
 
-// refresh token
-export const refreshToken = async (req: Request, res: Response) => {
+// logout
+export const logout = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        return sendResponse(res, 200, "User found.", user);
+        console.log("User trying to logged out.", user?._id);
+
+        return sendResponse(res, 200, "User logged out successfully.", null);
     } catch (error: any) {
-        console.error("Refresh Token Error:", error);
+        console.error("Logout Error:", error);
         return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
     }
 };

@@ -17,7 +17,7 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
         const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
 
         const user = await User.findById(decoded.userId);
-        if (!user) return sendResponse(res, 401, "User not found");
+        if (!user || user.isActive === false) return sendResponse(res, 401, "User not found or deactived");
 
         req.user = user;
         next();
@@ -26,6 +26,9 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
 
         if (err.name === "TokenExpiredError") {
             return sendResponse(res, 401, "Access token expired");
+        }
+        if (err.name === "JsonWebTokenError") {
+            return sendResponse(res, 401, "Invalid token");
         }
         return sendResponse(res, 500, `Invalid token: ${err.message}`);
     }

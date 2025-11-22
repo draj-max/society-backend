@@ -1,17 +1,7 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { SocietySchemaName, UserSchemaName } from "./modelNames";
+import mongoose, { Schema } from "mongoose";
 
-interface IUser extends Document {
-    username: string;
-    email: string;
-    password: string;
-    role: string;
-    phone: number;
-    roomNo: number;
-    chawlNo: string;
-    isOwner: boolean;
-    society: Schema.Types.ObjectId;
-}
+import { IUser } from "../types/user";
+import { SocietySchemaName, UserSchemaName } from "./modelNames";
 
 const UserSchema = new Schema<IUser>({
     username: {
@@ -30,7 +20,7 @@ const UserSchema = new Schema<IUser>({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'superAdmin', 'societyAdmin'],
         default: 'user'
     },
     phone: {
@@ -43,16 +33,20 @@ const UserSchema = new Schema<IUser>({
     roomNo: {
         type: Number,
     },
-    chawlNo: {
+    chawlFlatNo: {
         type: String,
     },
     isOwner: {
         type: Boolean,
         default: false
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
 
 }, { timestamps: true });
 
 
-const User = mongoose.models[UserSchemaName] || mongoose.model(UserSchemaName, UserSchema);
+const User = mongoose.model(UserSchemaName, UserSchema);
 export default User;
