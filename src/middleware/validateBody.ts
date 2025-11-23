@@ -9,20 +9,19 @@ export function validateBody(schema: z.ZodObject<any>) {
             if (!parsedBody.success) {
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: parsedBody.error.issues.map((d) => d.message),
+                    details: parsedBody.error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
             req.body = parsedBody.data;
             next();
         } catch (error: any) {
             if (error instanceof ZodError) {
-                console.error("Validation failed for valid data:", error.issues);
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: error.issues.map((d) => d.message),
+                    details: error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
-            return res.status(500).json({ message: 'Internal Server Error' });
+            return res.status(500).json({ message: 'Internal Server Error', error: error.message });
         }
     };
 };
@@ -37,16 +36,15 @@ export function validateQuery(schema: z.ZodObject<any>) {
             if (!parsedQuery.success) {
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: parsedQuery.error.issues.map((d) => d.message),
+                    details: parsedQuery.error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
             next();
         } catch (error: any) {
             if (error instanceof ZodError) {
-                console.error("Validation failed for valid data:", error.issues);
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: error.issues.map((d) => d.message),
+                    details: error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
             return res.status(500).json({ message: 'Internal Server Error' });
@@ -64,19 +62,17 @@ export function validateParams(schema: z.ZodObject<any>) {
             if (!parsedParams.success) {
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: parsedParams.error.issues.map((d) => d.message),
+                    details: parsedParams.error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
             next();
         } catch (error: any) {
             if (error instanceof ZodError) {
-                console.error("Validation failed for valid data:", error.issues);
                 return res.status(400).json({
                     error: "Validation Error",
-                    details: error.issues.map((d) => d.message),
+                    details: error.issues.map((d) => `${d.path.join(".")}=> ${d.message}`),
                 });
             }
-            console.error("Validation failed for valid data:", error);
             return res.status(500).json({ message: error.message });
         }
     };

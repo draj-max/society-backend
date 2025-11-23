@@ -131,19 +131,6 @@ export const refreshToken = async (req: Request, res: Response) => {
 };
 
 // ===================== authenticated / private routes =========================
-
-// my profile
-export const myProfile = async (req: Request, res: Response) => {
-    try {
-        const user = req.user;
-        return sendResponse(res, 200, "Your profile details.", user);
-    } catch (error: any) {
-        console.error("Me Error:", error);
-        return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
-    }
-};
-
-
 // logout
 export const logout = async (req: Request, res: Response) => {
     try {

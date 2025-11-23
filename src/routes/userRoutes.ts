@@ -11,6 +11,7 @@ import {
 } from '../validators/user.validate';
 
 import {
+    myProfile,
     updateUser,
     getAllUsers,
     reactiveUser,
@@ -22,6 +23,7 @@ import {
 const router = express.Router();
 
 router.use(authenticate);
+router.get('/me', myProfile);
 router.get('/all-users', getAllUsers);
 
 router.put(
@@ -33,14 +35,12 @@ router.put(
 router.put(
     '/deactive/:id',
     validateParams(findUserIdSchema),
-    validateBody(findUserIdSchema),
     deactiveUser,
 );
 
 router.put(
     '/reactive/:id',
     validateParams(findUserIdSchema),
-    validateBody(findUserIdSchema),
     reactiveUser,
 );
 

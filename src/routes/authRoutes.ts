@@ -3,7 +3,7 @@ import { Router } from "express";
 import authenticate from "../middleware/authenticate";
 import { validateBody } from "../middleware/validateBody";
 
-import { login, myProfile, register, refreshToken, logout } from "../controllers/authController";
+import { login, register, refreshToken, logout } from "../controllers/authController";
 import { registerSchema, loginSchema, refreshTokenSchema } from "../validators/auth.validate";
 
 const router = Router();
@@ -29,8 +29,6 @@ router.post(
 
 // authenticated / private routes
 router.use(authenticate);
-
-router.get('/me', myProfile);
 router.post('/logout', logout);
 
 export default router;

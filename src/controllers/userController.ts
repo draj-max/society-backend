@@ -4,20 +4,32 @@ import { Request, Response } from 'express';
 import logger from '../utils/logger';
 import User from '../models/user.model';
 import sendResponse from '../utils/sendResponse';
-import { bcryptSaltRounds } from '../config';
-import { IUser } from '../types/user';
+import { bcryptSaltRounds, societyAdmin, superAdmin } from '../config';
 
 // get all users
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        if (user?.role !== "societyAdmin") return sendResponse(res, 403, "Unauthorized to access this resource");
+        if (user?.role !== societyAdmin) {
+            return sendResponse(res, 403, "Unauthorized to access this resource");
+        }
 
         const users = await User.find({}).lean();
         return sendResponse(res, 200, 'Users retrieved successfully', users);
     } catch (error: any) {
         logger.error(`Error in getUsers: ${error.message}`);
         return sendResponse(res, 500, error.message);
+    }
+};
+
+// my profile
+export const myProfile = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        return sendResponse(res, 200, "Your profile details.", user);
+    } catch (error: any) {
+        console.error("Me Error:", error);
+        return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
     }
 };
 
@@ -61,7 +73,7 @@ export const updateMyProfile = async (req: Request, res: Response) => {
 export const deactiveUser = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        if (user && user.role !== "societyAdmin") {
+        if (user && user.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
@@ -91,7 +103,7 @@ export const deactiveUser = async (req: Request, res: Response) => {
 export const reactiveUser = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        if (user && user.role !== "societyAdmin") {
+        if (user && user.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
@@ -112,7 +124,6 @@ export const reactiveUser = async (req: Request, res: Response) => {
     }
 };
 
-
 // update user
 export const updateUser = async (req: Request, res: Response) => {
     try {
@@ -123,7 +134,7 @@ export const updateUser = async (req: Request, res: Response) => {
         if (!formData || !id) {
             return sendResponse(res, 400, "id is required to update user");
         }
-        if (user && user.role !== "societyAdmin") {
+        if (user && user.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
@@ -151,11 +162,11 @@ export const updateUser = async (req: Request, res: Response) => {
         if (formData.chawlFlatNo) { formData.chawlFlatNo = formData.chawlFlatNo.trim(); }
         if (formData.isOwner) { formData.isOwner = Boolean(formData.isOwner); }
 
-        if (formData.role === "superAdmin") {
+        if (formData.role === superAdmin) {
             return sendResponse(res, 400, "Can not set role to superAdmin");
         }
 
-        const exitUser = await User.findById(id).lean();
+        const exitUser = await User.findById(id);
         if (!exitUser) {
             return sendResponse(res, 404, "User not found.");
         }
@@ -171,7 +182,7 @@ export const updateUser = async (req: Request, res: Response) => {
             isOwner: formData.isOwner ?? exitUser.isOwner,
         };
 
-        const updatedUser = await User.findByIdAndUpdate(id, updatedData, { new: true }).lean();
+        const updatedUser = await User.findByIdAndUpdate(id, updatedData, { new: true });
         if (!updatedUser) {
             return sendResponse(res, 404, "User not found.");
         }
@@ -182,7 +193,6 @@ export const updateUser = async (req: Request, res: Response) => {
         return sendResponse(res, 500, error.message);
     }
 };
-
 
 // reset user password
 export const resetUserPassword = async (req: Request, res: Response) => {
@@ -195,7 +205,7 @@ export const resetUserPassword = async (req: Request, res: Response) => {
         }
         const hashPassword = await bcrypt.hash(password, bcryptSaltRounds);
 
-        const updatedUser: any = await User.findByIdAndUpdate(id, { password: hashPassword }, { new: true }).lean();
+        const updatedUser: any = await User.findByIdAndUpdate(id, { password: hashPassword }, { new: true });
 
         if (!updatedUser) {
             return sendResponse(res, 404, "User not found.");
