@@ -94,6 +94,7 @@ Create a `.env` file in the root directory with the following variables:
 
 ```env
 PORT=3000
+JWT_SECRET='openssl rand -base64 32'
 DB_URI=mongodb://localhost:27017/society
 ```
 
