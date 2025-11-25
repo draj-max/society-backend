@@ -13,7 +13,6 @@ import {
 import {
     myProfile,
     updateUser,
-    getAllUsers,
     reactiveUser,
     deactiveUser,
     updateMyProfile,
@@ -24,7 +23,6 @@ const router = express.Router();
 
 router.use(authenticate);
 router.get('/me', myProfile);
-router.get('/all-users', getAllUsers);
 
 router.put(
     '/update-profile',

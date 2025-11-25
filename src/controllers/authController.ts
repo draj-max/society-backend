@@ -15,42 +15,6 @@ import {
 
 // ===================== unauthenticated / public routes =========================
 
-// register controller
-export const register = async (req: Request, res: Response) => {
-    try {
-        let { username, email, password } = req.body;
-        if (!username || !email || !password) {
-            return sendResponse(res, 400, "All fields are required.");
-        }
-
-        email = email?.trim()?.toLowerCase();
-        username = username?.trim()?.toLowerCase();
-        password = password?.trim();
-
-        const [existEmail, existUsername] = await Promise.all([
-            User.findOne({ email }),
-            User.findOne({ username }),
-        ]);
-
-        const user = existEmail || existUsername;
-        if (user) {
-            return sendResponse(res, 400, "User already exists with the given email or username.");
-        }
-        const hashPassword = await bcrypt.hash(password, bcryptSaltRounds);
-
-        const newUser = new User({
-            username, email,
-            password: hashPassword,
-        });
-        await newUser.save();
-
-        return sendResponse(res, 201, "User registered successfully.", newUser);
-    } catch (error: any) {
-        console.error("Register Error:", error);
-        return sendResponse(res, 500, `Internal Server Error: ${error.message}`);
-    }
-};
-
 // login controller 
 export const login = async (req: Request, res: Response) => {
     try {
@@ -137,7 +101,7 @@ export const logout = async (req: Request, res: Response) => {
         const user = req.user;
         console.log("User trying to logged out.", user?._id);
 
-        return sendResponse(res, 200, "User logged out successfully.", null);
+        return sendResponse(res, 204, "User logged out successfully.", null);
     } catch (error: any) {
         console.error("Logout Error:", error);
         return sendResponse(res, 500, `Internal Server Error: ${error.message}`);

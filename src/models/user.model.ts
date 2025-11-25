@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 import { IUser } from "../types/user";
-import { user, superAdmin, societyAdmin } from "../config";
+import { superAdmin, societyAdmin, member } from "../config";
 import { SocietySchemaName, UserSchemaName } from "./modelNames";
 
 const UserSchema = new Schema<IUser>({
@@ -21,8 +21,8 @@ const UserSchema = new Schema<IUser>({
     },
     role: {
         type: String,
-        enum: [user, superAdmin, societyAdmin],
-        default: user
+        enum: [member, superAdmin, societyAdmin],
+        default: member
     },
     phone: {
         type: Number,

@@ -4,16 +4,21 @@ import authenticate from '../middleware/authenticate';
 import { validateBody, validateParams } from '../middleware/validateBody';
 
 import {
+    MemberIdSchema,
+    addMemberSchema,
     createSocietySchema,
     findSocietyIdSchema,
-    updateSocietySchema
+    updateSocietySchema,
 } from '../validators/society.validate';
 import {
+    updateSociety,
     createSociety,
     deleteSociety,
     getAllSocieties,
     getSocietyById,
-    updateSociety
+    addMemberToSociety,
+    removeMemberFromSociety,
+    getAllMembersOfSociety,
 } from '../controllers/societyController';
 
 
@@ -47,5 +52,21 @@ router.delete(
     deleteSociety
 );
 
+router.post(
+    "/add-member",
+    validateBody(addMemberSchema),
+    addMemberToSociety
+);
+
+router.post(
+    "/remove-member",
+    validateBody(MemberIdSchema),
+    removeMemberFromSociety
+);
+
+router.get(
+    "/members",
+    getAllMembersOfSociety
+);
 
 export default router;

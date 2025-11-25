@@ -5,7 +5,7 @@ import { billCategories, billStatus } from "../config";
 import { BillSchemaName, UserSchemaName, SocietySchemaName } from "./modelNames";
 
 const BillSchema = new Schema<IBill>({
-    residentId: {
+    memberId: {
         type: Schema.Types.ObjectId,
         ref: UserSchemaName,
         required: true
@@ -20,18 +20,28 @@ const BillSchema = new Schema<IBill>({
         enum: billCategories,
         required: true
     },
-    amount: {
+    totalAmount: {
         type: Number,
         required: true
+    },
+    paidAmount: {
+        type: Number,
+        default: 0
     },
     dueDate: {
         type: Date,
         required: true
     },
+    paidDate: {
+        type: Date,
+    },
     status: {
         type: String,
         enum: billStatus,
         default: billStatus[0]
+    },
+    photo: {
+        type: String,
     },
 }, { timestamps: true });
 

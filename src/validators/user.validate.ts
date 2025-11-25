@@ -24,19 +24,10 @@ export const findUserIdSchema = z.object({
 }).strict();
 
 export const updateUserSchema = z.object({
-    role: z.enum(['user', 'adminSociety']).optional(),
+    role: z.enum(['member', 'adminSociety']).optional(),
     username: z.string().optional(),
     email: z.email().optional(),
     phone: z.number().optional(),
-
-    society: z.string().check((value) => {
-        if (!value) {
-            throw new Error("Society ID is required");
-        }
-        if (String(value.value).length !== 24) {
-            throw new Error("Invalid Society ID provided");
-        }
-    }).optional(),
 
     roomNo: z.number().optional(),
     chawlFlatNo: z.string().optional(),

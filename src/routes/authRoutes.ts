@@ -3,8 +3,8 @@ import { Router } from "express";
 import authenticate from "../middleware/authenticate";
 import { validateBody } from "../middleware/validateBody";
 
-import { login, register, refreshToken, logout } from "../controllers/authController";
-import { registerSchema, loginSchema, refreshTokenSchema } from "../validators/auth.validate";
+import { login, refreshToken, logout } from "../controllers/authController";
+import { loginSchema, refreshTokenSchema } from "../validators/auth.validate";
 
 const router = Router();
 
@@ -13,12 +13,6 @@ router.post(
     '/login',
     validateBody(loginSchema),
     login
-);
-
-router.post(
-    '/register',
-    validateBody(registerSchema),
-    register
 );
 
 router.post(

@@ -1,13 +1,14 @@
 import { Document, Schema } from "mongoose";
 
 export interface IBill extends Document {
-    residentId: Schema.Types.ObjectId;
+    memberId: Schema.Types.ObjectId;
     societyId: Schema.Types.ObjectId;
     category: string;
-    amount: number;
+    totalAmount: number;
+    paidAmount: number;
     dueDate: Date;
     status: string;
-    createdAt: Date;
-    updatedAt: Date;
+    paidDate: Date;
+    photo: string;
 };
 

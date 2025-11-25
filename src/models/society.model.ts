@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
+import User from "./user.model";
 import { ISociety } from "../types/society";
 import { SocietySchemaName, UserSchemaName } from "./modelNames";
 
@@ -33,6 +34,27 @@ const societySchema = new Schema<ISociety>({
         ref: UserSchemaName,
         required: true,
     },
+    members: [{
+        type: Schema.Types.ObjectId,
+        ref: UserSchemaName,
+    }],
+    totalMembers: {
+        type: Number,
+        default: 0,
+    },
+});
+
+societySchema.pre("save", async function (next) {
+    // update total members
+    this.members = await User.find({ society: this._id }).select("_id");
+    this.totalMembers = this.members.length;
+    next();
+});
+
+societySchema.pre("updateOne", async function (next) {
+    // update total members
+    this.updateOne({ totalMembers: await User.countDocuments({ society: this.getFilter()._id }) });
+    next();
 });
 
 const Society = mongoose.model(SocietySchemaName, societySchema);

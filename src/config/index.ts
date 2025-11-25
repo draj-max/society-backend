@@ -12,10 +12,10 @@ export const refreshTokenExp = '30d';
 export const bcryptSaltRounds = Number(process.env.BCRYPT_SALT_ROUNDS);
 
 // user roles
-export const user: string = 'user';
+export const member: string = 'member';
 export const superAdmin: string = 'superAdmin';
 export const societyAdmin: string = 'societyAdmin';
 
 // bill categories
-export const billCategories: string[] = ['maintenance', 'water', 'electricity', 'others'];
-export const billStatus: string[] = ['unpaid', 'pending', 'paid'];
+export const billCategories: string[] = ["maintenance", "water", "electricity", "others"];
+export const billStatus: string[] = ["unpaid", "pending", "paid"];

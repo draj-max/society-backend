@@ -9,6 +9,6 @@ export interface IUser extends Document {
     roomNo: number;
     chawlFlatNo: string;
     isOwner: boolean;
-    society: Schema.Types.ObjectId;
+    society?: Schema.Types.ObjectId | null;
     isActive: boolean;
 };

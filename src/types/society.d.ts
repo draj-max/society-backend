@@ -8,4 +8,6 @@ export interface ISociety extends Document {
     state: string;
     pincode: string;
     admin: Schema.Types.ObjectId;
+    members: Schema.Types.ObjectId[];
+    totalMembers: number;
 };

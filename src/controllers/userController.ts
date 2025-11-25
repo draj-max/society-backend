@@ -6,22 +6,6 @@ import User from '../models/user.model';
 import sendResponse from '../utils/sendResponse';
 import { bcryptSaltRounds, societyAdmin, superAdmin } from '../config';
 
-// get all users
-export const getAllUsers = async (req: Request, res: Response) => {
-    try {
-        const user = req.user;
-        if (user?.role !== societyAdmin) {
-            return sendResponse(res, 403, "Unauthorized to access this resource");
-        }
-
-        const users = await User.find({}).lean();
-        return sendResponse(res, 200, 'Users retrieved successfully', users);
-    } catch (error: any) {
-        logger.error(`Error in getUsers: ${error.message}`);
-        return sendResponse(res, 500, error.message);
-    }
-};
-
 // my profile
 export const myProfile = async (req: Request, res: Response) => {
     try {
@@ -72,27 +56,25 @@ export const updateMyProfile = async (req: Request, res: Response) => {
 // deactive user
 export const deactiveUser = async (req: Request, res: Response) => {
     try {
-        const user = req.user;
-        if (user && user.role !== societyAdmin) {
+        const { id } = req.params;
+        const currentUser = req.user;
+
+        if (currentUser && currentUser.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
-        console.log(req.params.id);
-        console.log(
-            await User.findOne({ _id: req.params.id }).lean()
-        );
-
-        const deactivedUser: any = await User.findOneAndUpdate(
-            { _id: req.params.id, isActive: true },
-            { isActive: false },
-            { new: true }
-        ).lean();
-
-        if (!deactivedUser) {
-            return sendResponse(res, 404, "User not found or already deactived.");
+        // targeted user
+        const targetUser = await User.findOne({
+            _id: id,
+            isActive: true,
+            society: currentUser?.society
+        });
+        if (!targetUser) {
+            return sendResponse(res, 404, "User not found under your society or already deactived.");
         }
 
-        return sendResponse(res, 200, 'User deactived successfully', { username: deactivedUser?.username });
+        await User.findByIdAndUpdate(id, { isActive: false });
+        return sendResponse(res, 200, 'User deactived successfully', { username: targetUser?.username });
     } catch (error: any) {
         logger.error(`Error in deactiveUser: ${error.message}`);
         return sendResponse(res, 500, error.message);
@@ -102,22 +84,25 @@ export const deactiveUser = async (req: Request, res: Response) => {
 // reactive user
 export const reactiveUser = async (req: Request, res: Response) => {
     try {
-        const user = req.user;
-        if (user && user.role !== societyAdmin) {
+        const { id } = req.params;
+        const currentUser = req.user;
+
+        if (currentUser && currentUser.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
-        const reactiveUser: any = await User.findOneAndUpdate(
-            { _id: req.params.id, isActive: false },
-            { isActive: true },
-            { new: true }
-        ).lean();
+        const targetUser = await User.findOneAndUpdate({
+            _id: id,
+            isActive: false,
+            society: currentUser?.society
+        });
 
-        if (!reactiveUser) {
-            return sendResponse(res, 404, "User not found or already reactive.");
+        if (!targetUser) {
+            return sendResponse(res, 404, "User not found under your society or already reactive.");
         }
 
-        return sendResponse(res, 200, 'User reactive successfully', { username: reactiveUser?.username });
+        await User.findByIdAndUpdate(id, { isActive: true });
+        return sendResponse(res, 200, 'User reactive successfully', { username: targetUser?.username });
     } catch (error: any) {
         logger.error(`Error in reactiveUser: ${error.message}`);
         return sendResponse(res, 500, error.message);
@@ -155,15 +140,14 @@ export const updateUser = async (req: Request, res: Response) => {
         }
 
         if (formData.role) { formData.role = formData.role.trim(); }
-        if (formData.society) { formData.society = formData.society.trim(); }
         if (formData.phone) { formData.phone = Number(formData.phone); }
 
         if (formData.roomNo) { formData.roomNo = Number(formData.roomNo); }
         if (formData.chawlFlatNo) { formData.chawlFlatNo = formData.chawlFlatNo.trim(); }
         if (formData.isOwner) { formData.isOwner = Boolean(formData.isOwner); }
 
-        if (formData.role === superAdmin) {
-            return sendResponse(res, 400, "Can not set role to superAdmin");
+        if ([superAdmin, societyAdmin].includes(formData.role)) {
+            return sendResponse(res, 400, "Can not set role to superAdmin or societyAdmin");
         }
 
         const exitUser = await User.findById(id);
@@ -175,7 +159,6 @@ export const updateUser = async (req: Request, res: Response) => {
             username: formData.username ?? exitUser.username,
             role: formData.role ?? exitUser.role,
             email: formData.email ?? exitUser.email,
-            society: formData.society ?? exitUser.society,
             phone: formData.phone ?? exitUser.phone,
             roomNo: formData.roomNo ?? exitUser.roomNo,
             chawlFlatNo: formData.chawlFlatNo ?? exitUser.chawlFlatNo,
@@ -197,21 +180,46 @@ export const updateUser = async (req: Request, res: Response) => {
 // reset user password
 export const resetUserPassword = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user;
         let { password, id } = req.body;
+
         password = password.trim();
+        const targetUser = await User.findById(id);
 
-        if (!password) {
-            return sendResponse(res, 400, "Password is required");
-        }
-        const hashPassword = await bcrypt.hash(password, bcryptSaltRounds);
-
-        const updatedUser: any = await User.findByIdAndUpdate(id, { password: hashPassword }, { new: true });
-
-        if (!updatedUser) {
-            return sendResponse(res, 404, "User not found.");
+        if (!targetUser) {
+            return sendResponse(res, 404, "Target user not found.");
         }
 
-        return sendResponse(res, 200, 'User password updated successfully', null);
+        const isSelf = String(currentUser?._id) === String(targetUser?._id);
+
+        if (isSelf) { console.log("You are reseting your own password."); }
+        else if (currentUser?.role === superAdmin) { console.log("Superadmin is reseting anyone's password."); }
+        else if (currentUser?.role === societyAdmin) {
+            // console.log("Societyadmin is reseting anyone's password.");
+            if (currentUser?.society.toString() !== targetUser?.society?.toString()) {
+                // console.log("You can only reset passwords of users inside your society.");
+                return sendResponse(
+                    res,
+                    403,
+                    "You can only reset passwords of users inside your society."
+                );
+            }
+        }
+        else {
+            return sendResponse(res, 403, "You are not allowed to reset this password.");
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, bcryptSaltRounds);
+
+        // Update password
+        await User.findByIdAndUpdate(
+            id,
+            { password: hashedPassword },
+            { new: true }
+        );
+
+        return sendResponse(res, 200, "User password updated successfully", null);
     } catch (error: any) {
         logger.error(`Error in resetUserPassword: ${error.message}`);
         return sendResponse(res, 500, error.message);
