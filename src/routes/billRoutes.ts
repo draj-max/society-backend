@@ -6,11 +6,24 @@ import {
     updateBill,
     getBillsByMemberId,
     getBillsBySocietyId,
+    approve_reject_BillPayment,
 } from "../controllers/billController";
 
+import {
+    validateBody,
+    validateParams,
+    validateQuery
+} from "../middleware/validateBody";
+
+import {
+    idSchema,
+    createBillSchema,
+    updateBillSchema,
+    memberBillsQuerySchema,
+    approveRejectBillSchema
+} from "../validators/bill.validate";
 import authenticate from "../middleware/authenticate";
-import { validateBody, validateParams, validateQuery } from "../middleware/validateBody";
-import { idSchema, createBillSchema, updateBillSchema, statusSchema } from "../validators/bill.validate";
+import { uploadPaymentProof } from "../middleware/uploadPaymentProof";
 
 const billRouter = express.Router();
 
@@ -28,8 +41,7 @@ billRouter.get(
 
 billRouter.get(
     "/member-bills",
-    validateBody(idSchema),
-    validateQuery(statusSchema),
+    validateQuery(memberBillsQuerySchema),
     getBillsByMemberId
 );
 
@@ -42,8 +54,15 @@ billRouter.put(
 
 billRouter.put(
     "/pay",
+    uploadPaymentProof.single("proofImage"),
     validateBody(idSchema),
     payBill
+);
+
+billRouter.put(
+    "/approve-reject",
+    validateBody(approveRejectBillSchema),
+    approve_reject_BillPayment
 );
 
 export default billRouter;

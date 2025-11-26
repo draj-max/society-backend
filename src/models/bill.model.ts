@@ -28,6 +28,10 @@ const BillSchema = new Schema<IBill>({
         type: Number,
         default: 0
     },
+    pendingAmount: {
+        type: Number,
+        default: 0
+    },
     dueDate: {
         type: Date,
         required: true
@@ -40,8 +44,13 @@ const BillSchema = new Schema<IBill>({
         enum: billStatus,
         default: billStatus[0]
     },
-    photo: {
-        type: String,
+    paymentProof: {
+        url: {
+            type: String,
+        },
+        uploadedAt: {
+            type: Date,
+        }
     },
 }, { timestamps: true });
 

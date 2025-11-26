@@ -6,9 +6,13 @@ export interface IBill extends Document {
     category: string;
     totalAmount: number;
     paidAmount: number;
+    pendingAmount: number;
     dueDate: Date;
     status: string;
     paidDate: Date;
-    photo: string;
+    paymentProof: {
+        url: string | null;
+        uploadedAt: Date | null;
+    };
 };
 
