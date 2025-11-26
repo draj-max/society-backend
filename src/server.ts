@@ -33,7 +33,7 @@ app.use('/api', apiRoutes);
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error(`❌ Error: ${err.message}`);
-    return sendResponse(res, 500,
+    return sendResponse(res, 404,
         `The requiested api route=> ${req.url} is not found to be exist.`,
         { requested_route: req.url }
     );

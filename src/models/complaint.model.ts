@@ -4,7 +4,7 @@ import { IComplaint } from '../types/complaint';
 import { ComplaintSchemaName, UserSchemaName, SocietySchemaName } from './modelNames';
 
 const complaintSchema = new Schema<IComplaint>({
-    residentId: {
+    memberId: {
         type: Schema.Types.ObjectId,
         ref: UserSchemaName,
         required: true
@@ -24,10 +24,13 @@ const complaintSchema = new Schema<IComplaint>({
         required: true,
         trim: true
     },
+    media: {
+        type: String,
+    },
     status: {
         type: String,
-        enum: ["pending", "resolved"],
-        default: "pending"
+        enum: ["raised", "forwarded", "resolved"],
+        default: "raised"
     }
 }, { timestamps: true });
 

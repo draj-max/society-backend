@@ -12,7 +12,7 @@ const storage = new CloudinaryStorage({
 
 });
 
-export const uploadPaymentProof = multer({
+const uploadImage = multer({
     storage: storage,
     limits: {
         fileSize: 5 * 1024 * 1024,
@@ -26,3 +26,5 @@ export const uploadPaymentProof = multer({
         }
     },
 });
+
+export default uploadImage;

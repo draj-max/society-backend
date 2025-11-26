@@ -1,5 +1,8 @@
 import express from "express";
 
+import uploadImage from "../middleware/upload";
+import authenticate from "../middleware/authenticate";
+
 import {
     payBill,
     createBill,
@@ -22,8 +25,6 @@ import {
     memberBillsQuerySchema,
     approveRejectBillSchema
 } from "../validators/bill.validate";
-import authenticate from "../middleware/authenticate";
-import { uploadPaymentProof } from "../middleware/uploadPaymentProof";
 
 const billRouter = express.Router();
 
@@ -54,7 +55,7 @@ billRouter.put(
 
 billRouter.put(
     "/pay",
-    uploadPaymentProof.single("proofImage"),
+    uploadImage.single("proofImage"),
     validateBody(idSchema),
     payBill
 );
