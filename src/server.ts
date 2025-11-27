@@ -30,8 +30,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // api routes for user
 app.use('/api', apiRoutes);
 
-app.get('/', (req: Request, res: Response) => {
-    res.send(`Hey There!${req.method} ${req.url}`);
+app.get('/test', (req: Request, res: Response) => {
+    res.send(`${req.method} => ${req.url} : Hey There!`);
 });
 
 // Error handling middleware
