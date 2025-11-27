@@ -30,6 +30,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // api routes for user
 app.use('/api', apiRoutes);
 
+app.get('/', (req: Request, res: Response) => {
+    res.send(`Hey There!${req.method} ${req.url}`);
+});
+
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error(`❌ Error: ${err.message}`);

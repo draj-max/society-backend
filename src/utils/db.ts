@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { MONGODB_URL } from "../config";
 
 export const connectDB = async (): Promise<void> => {
-    console.log("\n=== Connecting to MongoDB ===\n", MONGODB_URL);
+    console.log("\n=== Connecting to MongoDB ===\n");
 
     try {
         await mongoose.connect(MONGODB_URL);
