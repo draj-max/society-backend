@@ -1,23 +1,20 @@
-import multer from "multer";
-import cloudinary from "../config/cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer, { diskStorage } from "multer";
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "image/gif"];
 
-const storage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-        public_id: (req, file) => `${file.fieldname}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-    },
-
-});
-
 const uploadImage = multer({
-    storage: storage,
+
+    storage: diskStorage({
+        filename: (req, file, cb) => {
+            cb(null, `${file.fieldname}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+        },
+    }),
+
     limits: {
         fileSize: 5 * 1024 * 1024,
         files: 1
     },
+
     fileFilter: (req, file, cb) => {
         if (allowedMimeTypes.includes(file.mimetype)) {
             cb(null, true);

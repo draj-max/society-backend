@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { societyAdmin } from "../config";
 import Complaint from "../models/complaint.model";
 import sendResponse from "../utils/sendResponse";
+import { uploadFile } from "../utils/uploadService";
 
 export const getComplaints = async (req: Request, res: Response) => {
     try {
@@ -55,14 +56,14 @@ export const createComplaint = async (req: Request, res: Response) => {
         if (!req.file) {
             return sendResponse(res, 400, "Complain proof image is required.");
         }
-        const fileData: any = req.file;
+        const uploadResult = await uploadFile(req.file.path);
 
         const complaint = await Complaint.create({
             memberId,
             societyId,
             title,
             description,
-            media: fileData.path
+            media: uploadResult?.secure_url,
         });
         return sendResponse(res, 201, "Complaint created successfully.", complaint);
     } catch (error: any) {

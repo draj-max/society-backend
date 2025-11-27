@@ -4,15 +4,16 @@ import Bill from "../models/bill.model";
 import User from "../models/user.model";
 import { member, societyAdmin } from "../config";
 import sendResponse from "../utils/sendResponse";
+import { uploadFile } from "../utils/uploadService";
 
 export const createBill = async (req: Request, res: Response) => {
     try {
-        const user = req.user;
-        if (user?.role !== societyAdmin) {
+        const currentUser = req.user;
+        if (currentUser?.role !== societyAdmin) {
             return sendResponse(res, 403, "Unauthorized to access this resource");
         }
 
-        const societyId = user?.society;
+        const societyId = currentUser?.society;
         let { memberId, category, totalAmount, dueDate } = req.body;
 
         // sanitize inputs
@@ -192,13 +193,13 @@ export const payBill = async (req: Request, res: Response) => {
         if (!req.file) {
             return sendResponse(res, 400, "Payment proof image is required.");
         }
-        const fileData: any = req.file;
+        const uploadResult = await uploadFile(req.file.path);
 
         const updatedBill = await Bill.findByIdAndUpdate(id, {
             status: "pending",
             paidDate: new Date(),
             paymentProof: {
-                url: fileData?.path,
+                url: uploadResult?.secure_url,
                 uploadedAt: new Date(),
             },
         }, { new: true });
