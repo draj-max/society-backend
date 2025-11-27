@@ -85,6 +85,8 @@ export const createSociety = async (req: Request, res: Response) => {
                     society: newSociety._id,
                 }
             );
+            newSociety.members.push(societyAdminUser._id as Schema.Types.ObjectId);
+            await newSociety.save();
         } catch (err) {
             // rollback both
             await Society.findByIdAndDelete(newSociety._id);
